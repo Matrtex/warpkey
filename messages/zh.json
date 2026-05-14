@@ -12,6 +12,7 @@
     "status": {
       "active": "有效密钥",
       "total": "累计收集",
+      "lastFetch": "最近拉取",
       "new": "今日新增"
     },
     "latestChanges": "最近更新",

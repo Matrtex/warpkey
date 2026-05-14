@@ -1,3 +1,5 @@
+import { ProxyAgent, fetch as undiciFetch } from 'undici';
+
 // Constants from main.go
 const SOURCES = [
   "https://t.me/s/warpplus",
@@ -7,6 +9,8 @@ const SOURCES = [
 ];
 
 const PATTERN = /<code>([A-Za-z0-9-]+)<\/code>/g;
+const PROXY_URL = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy || process.env.ALL_PROXY || process.env.all_proxy;
+const PROXY_AGENT = PROXY_URL ? new ProxyAgent(PROXY_URL) : undefined;
 
 export interface KeyData {
   keys: string[];
@@ -21,7 +25,9 @@ export interface LiveData {
 
 export async function fetchKeysFromUrl(url: string): Promise<string[]> {
   try {
-    const response = await fetch(url);
+    const response = PROXY_AGENT
+      ? await undiciFetch(url, { dispatcher: PROXY_AGENT })
+      : await fetch(url);
     if (!response.ok) {
       console.error(`Error fetching ${url}: ${response.statusText}`);
       return [];

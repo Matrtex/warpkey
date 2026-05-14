@@ -12,6 +12,7 @@
     "status": {
       "active": "Active Keys",
       "total": "Total Collected",
+      "lastFetch": "Last Fetch",
       "new": "New Today"
     },
     "latestChanges": "Recent Updates",
