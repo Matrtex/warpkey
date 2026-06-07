@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: 检出代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 检查 Wiki 仓库
         id: wiki
