@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { Server, ShieldCheck, Activity, Terminal, ExternalLink, Code, CloudDownload, History } from 'lucide-react';
 import Link from 'next/link';
 import { CopyButton } from '@/components/CopyButton';
+import { Footer } from '@/components/Footer';
 
 export default async function About() {
   const t = await getTranslations('About');
@@ -163,6 +164,7 @@ export default async function About() {
           </Button>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

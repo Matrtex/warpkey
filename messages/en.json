@@ -5,6 +5,21 @@
     "about": "About",
     "api": "API Access"
   },
+  "Footer": {
+    "brand": "Warp Key Tool",
+    "description": "Real-time Cloudflare Warp+ key collection with a visual list and plain-text API for scripts, subscription tools, and private deployments.",
+    "mode": "Real-time fetch · Short cache · No local persistence",
+    "navigation": "Navigation",
+    "resources": "Resources",
+    "home": "Home",
+    "about": "About",
+    "api": "API Docs",
+    "source": "GitHub Repository",
+    "wiki": "Project Wiki",
+    "blog": "Author Website",
+    "copyright": "© {year} Warp Key. All rights reserved.",
+    "license": "MIT License"
+  },
   "Home": {
     "title": "Warp Key Automatic Collection Tool",
     "description": "Automatically collects, validates, and updates Cloudflare Warp+ keys from multiple sources every hour.",

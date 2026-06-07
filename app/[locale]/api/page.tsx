@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { getTranslations } from 'next-intl/server';
 import { Terminal, ExternalLink, CloudDownload } from 'lucide-react';
 import { CopyButton } from '@/components/CopyButton';
+import { Footer } from '@/components/Footer';
 
 export default async function ApiDocs() {
   const t = await getTranslations('API');
@@ -128,6 +129,7 @@ export default async function ApiDocs() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

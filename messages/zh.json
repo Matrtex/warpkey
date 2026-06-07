@@ -5,6 +5,21 @@
     "about": "关于",
     "api": "API 访问"
   },
+  "Footer": {
+    "brand": "Warp Key 工具",
+    "description": "实时收集 Cloudflare Warp+ key，提供可视化列表和纯文本 API，适合脚本、订阅工具和私有部署集成。",
+    "mode": "实时拉取 · 短缓存 · 不落盘存储",
+    "navigation": "导航",
+    "resources": "资源",
+    "home": "首页",
+    "about": "关于项目",
+    "api": "API 文档",
+    "source": "GitHub 仓库",
+    "wiki": "项目 Wiki",
+    "blog": "作者网站",
+    "copyright": "© {year} Warp Key. 保留所有权利。",
+    "license": "MIT License"
+  },
   "Home": {
     "title": "Warp Key 自动收集工具",
     "description": "每小时自动从多个来源收集、验证并更新 Cloudflare Warp+ 密钥。",

@@ -7,6 +7,7 @@ import { CopyButton } from '@/components/CopyButton';
 import { ShieldCheck, Activity, Clock3, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { fetchLiveData } from '@/lib/warp';
+import { Footer } from '@/components/Footer';
 
 export const revalidate = 60; // Revalidate every minute
 
@@ -180,6 +181,7 @@ export default async function Home() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
