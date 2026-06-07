@@ -2,23 +2,12 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
-import {Geist, Geist_Mono} from "next/font/google";
 import "../globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 function isValidLocale(locale: string): locale is (typeof routing.locales)[number] {
   return routing.locales.includes(locale as (typeof routing.locales)[number]);
 }
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata = {
   title: 'Warp Key Automatic Collection Tool',
@@ -34,18 +23,17 @@ export default async function LocaleLayout({
 }) {
   const {locale} = await params;
   
-  // Ensure that the incoming `locale` is valid
+  // 确保传入的 locale 是受支持的语言。
   if (!isValidLocale(locale)) {
     notFound();
   }
 
-  // Providing all messages to the client
-  // side is the easiest way to get started
+  // 将当前语言文案提供给客户端组件使用。
   const messages = await getMessages();
 
   return (
     <html lang={locale}>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className="antialiased">
         <NextIntlClientProvider messages={messages}>
           <TooltipProvider>
             {children}

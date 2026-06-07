@@ -1,0 +1,82 @@
+name: 定时健康检查
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: 临时覆盖 APP_URL，例如 https://your-app.vercel.app
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  cron-healthcheck:
+    name: 调用 cron 接口
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DEFAULT_APP_URL: ${{ vars.APP_URL || secrets.APP_URL }}
+      MANUAL_APP_URL: ${{ inputs.app_url }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+    steps:
+      - name: 检查配置
+        id: config
+        shell: bash
+        run: |
+          app_url="${MANUAL_APP_URL:-$DEFAULT_APP_URL}"
+          app_url="${app_url%/}"
+
+          if [ -z "$app_url" ]; then
+            echo "::error::缺少 APP_URL，请在 Repository variables/secrets 中配置 APP_URL，或手动运行时输入 app_url。"
+            exit 1
+          fi
+
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::缺少 CRON_SECRET，请在 Repository secrets 中配置与部署环境一致的 CRON_SECRET。"
+            exit 1
+          fi
+
+          echo "app_url=$app_url" >> "$GITHUB_OUTPUT"
+
+      - name: 调用 cron 健康检查
+        shell: bash
+        env:
+          APP_URL: ${{ steps.config.outputs.app_url }}
+        run: |
+          response_file="$(mktemp)"
+          export RESPONSE_FILE="$response_file"
+
+          http_code="$(
+            curl --location --silent --show-error --max-time 45 \
+              --write-out "%{http_code}" \
+              --output "$response_file" \
+              -H "Authorization: Bearer ${CRON_SECRET}" \
+              "${APP_URL}/api/cron"
+          )"
+
+          echo "HTTP ${http_code}"
+          cat "$response_file"
+          echo
+
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+            echo "::error::cron 接口返回非 2xx 状态码。"
+            exit 1
+          fi
+
+          node <<'NODE'
+          const fs = require('fs');
+          const body = JSON.parse(fs.readFileSync(process.env.RESPONSE_FILE, 'utf8'));
+
+          if (body.success !== true) {
+            throw new Error('cron 响应中的 success 不是 true');
+          }
+
+          const fullCount = Array.isArray(body.full) ? body.full.length : 0;
+          const liteCount = Array.isArray(body.lite) ? body.lite.length : 0;
+          console.log(`full=${fullCount}, lite=${liteCount}, lastUpdated=${body.lastUpdated}`);
+          NODE

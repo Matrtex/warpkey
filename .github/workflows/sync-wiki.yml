@@ -1,0 +1,65 @@
+name: 同步 Wiki 文档
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/wiki/**
+      - .github/workflows/sync-wiki.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-wiki:
+    name: 同步 docs/wiki
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 检查 Wiki 仓库
+        id: wiki
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          wiki_url="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
+
+          if git ls-remote "$wiki_url" >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Wiki 未启用或暂不可访问，已跳过同步。"
+          fi
+
+      - name: 克隆 Wiki 仓库
+        if: steps.wiki.outputs.enabled == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" wiki-repo
+
+      - name: 同步文档并推送
+        if: steps.wiki.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          rsync -a --delete --exclude ".git" docs/wiki/ wiki-repo/
+
+          cd wiki-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --cached --quiet --exit-code; then
+            echo "Wiki 文档没有变化。"
+            exit 0
+          fi
+
+          git commit -m "docs: 同步项目 Wiki"
+          git push

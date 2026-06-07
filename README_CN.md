@@ -2,6 +2,10 @@
 
 [English](README.md) | [简体中文](README_CN.md)
 
+[![持续集成](https://github.com/Matrtex/warpkey/actions/workflows/ci.yml/badge.svg)](https://github.com/Matrtex/warpkey/actions/workflows/ci.yml)
+[![定时健康检查](https://github.com/Matrtex/warpkey/actions/workflows/cron-healthcheck.yml/badge.svg)](https://github.com/Matrtex/warpkey/actions/workflows/cron-healthcheck.yml)
+[![同步 Wiki 文档](https://github.com/Matrtex/warpkey/actions/workflows/sync-wiki.yml/badge.svg)](https://github.com/Matrtex/warpkey/actions/workflows/sync-wiki.yml)
+
 **Warp Key 自动收集工具** 是一个强大的自动化工具，用于从多个来源收集、验证和维护高质量的 Cloudflare Warp+ 密钥池。
 
 本项目现已升级为基于 Next.js 和 Vercel 的现代化 Web 应用，提供实时数据可视化、变更追踪和便捷的 API 接口。
@@ -21,10 +25,24 @@
 
 ## 🚀 直接获取
 
-您可以直接通过我们要托管的 API 获取最新的 Warp+ 密钥（每小时更新）：
+您可以直接通过托管 API 获取最新的 Warp+ 密钥（请求时实时拉取，并使用短缓存降低上游压力）：
 
 - **Web 界面**: https://warp-tool.vercel.app/
 也可以访问我的博客获取更多信息：[Haoyu Wang's Blog](https://www.wanghaoyu.com.cn/archives/cloudflare-warp-key.html)
+
+## 📚 Wiki 与自动化
+
+- **详细 Wiki**: [docs/wiki/Home.md](docs/wiki/Home.md)
+- **架构说明**: [docs/wiki/Architecture.md](docs/wiki/Architecture.md)
+- **部署指南**: [docs/wiki/Deployment.md](docs/wiki/Deployment.md)
+- **API 文档**: [docs/wiki/API.md](docs/wiki/API.md)
+- **GitHub Actions**: [docs/wiki/GitHub-Actions.md](docs/wiki/GitHub-Actions.md)
+
+已内置的 Actions：
+
+- `持续集成`: push、pull request 和手动触发时运行 `pnpm lint` 与 `pnpm build`。
+- `定时健康检查`: 每小时调用一次部署站点的 `/api/cron`，用于确认抓取链路可用。
+- `同步 Wiki 文档`: 将 `docs/wiki` 同步到 GitHub Wiki；如果仓库未开启 Wiki，会自动跳过。
 
 ## 🛠️ 部署指南
 

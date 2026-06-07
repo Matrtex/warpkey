@@ -2,6 +2,10 @@
 
 [English](README.md) | [简体中文](README_CN.md)
 
+[![CI](https://github.com/Matrtex/warpkey/actions/workflows/ci.yml/badge.svg)](https://github.com/Matrtex/warpkey/actions/workflows/ci.yml)
+[![Cron Healthcheck](https://github.com/Matrtex/warpkey/actions/workflows/cron-healthcheck.yml/badge.svg)](https://github.com/Matrtex/warpkey/actions/workflows/cron-healthcheck.yml)
+[![Sync Wiki](https://github.com/Matrtex/warpkey/actions/workflows/sync-wiki.yml/badge.svg)](https://github.com/Matrtex/warpkey/actions/workflows/sync-wiki.yml)
+
 **Warp Key Auto-Collector** is a robust tool that automatically collects, validates, and maintains a high-quality pool of Cloudflare Warp+ keys from multiple sources.
 
 This project now features a modern Web UI powered by Next.js and Vercel, providing real-time visualization, change tracking, and easy-to-use API endpoints.
@@ -21,9 +25,23 @@ This project now features a modern Web UI powered by Next.js and Vercel, providi
 
 ## 🚀 Direct Access
 
-You can access the latest Warp+ keys directly via our hosted API (updated hourly):
+You can access the latest Warp+ keys directly via the hosted API. Data is fetched on request with a short edge cache:
 
 - **Web Interface**: https://warp-tool.vercel.app/
+
+## 📚 Wiki & Automation
+
+- **Detailed Wiki**: [docs/wiki/Home.md](docs/wiki/Home.md)
+- **Architecture**: [docs/wiki/Architecture.md](docs/wiki/Architecture.md)
+- **Deployment**: [docs/wiki/Deployment.md](docs/wiki/Deployment.md)
+- **API**: [docs/wiki/API.md](docs/wiki/API.md)
+- **GitHub Actions**: [docs/wiki/GitHub-Actions.md](docs/wiki/GitHub-Actions.md)
+
+Included workflows:
+
+- `持续集成`: runs `pnpm lint` and `pnpm build` on push, pull request, and manual dispatch.
+- `定时健康检查`: calls the deployed `/api/cron` endpoint every hour.
+- `同步 Wiki 文档`: syncs `docs/wiki` to GitHub Wiki when Wiki is enabled.
 
 
 ## 🛠️ Deployment
