@@ -29,6 +29,7 @@ jobs:
         shell: bash
         run: |
           app_url="${MANUAL_APP_URL:-$DEFAULT_APP_URL}"
+          app_url="${app_url:-https://warp-tool.vercel.app}"
           app_url="${app_url%/}"
 
           if [ -z "$app_url" ]; then
@@ -37,13 +38,16 @@ jobs:
           fi
 
           if [ -z "$CRON_SECRET" ]; then
-            echo "::error::缺少 CRON_SECRET，请在 Repository secrets 中配置与部署环境一致的 CRON_SECRET。"
-            exit 1
+            echo "::notice::CRON_SECRET 未配置，将检查公开 /api/full 接口。"
+            echo "has_cron_secret=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_cron_secret=true" >> "$GITHUB_OUTPUT"
           fi
 
           echo "app_url=$app_url" >> "$GITHUB_OUTPUT"
 
       - name: 调用 cron 健康检查
+        if: steps.config.outputs.has_cron_secret == 'true'
         shell: bash
         env:
           APP_URL: ${{ steps.config.outputs.app_url }}
@@ -80,3 +84,37 @@ jobs:
           const liteCount = Array.isArray(body.lite) ? body.lite.length : 0;
           console.log(`full=${fullCount}, lite=${liteCount}, lastUpdated=${body.lastUpdated}`);
           NODE
+
+      - name: 调用公开 API 健康检查
+        if: steps.config.outputs.has_cron_secret == 'false'
+        shell: bash
+        env:
+          APP_URL: ${{ steps.config.outputs.app_url }}
+        run: |
+          response_file="$(mktemp)"
+          export RESPONSE_FILE="$response_file"
+
+          http_code="$(
+            curl --location --silent --show-error --max-time 45 \
+              --write-out "%{http_code}" \
+              --output "$response_file" \
+              "${APP_URL}/api/full"
+          )"
+
+          echo "HTTP ${http_code}"
+          key_count="$(grep -cve '^[[:space:]]*$' "$response_file" || true)"
+          echo "key_count=${key_count}"
+
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+            cat "$response_file"
+            echo
+            echo "::error::公开 /api/full 接口返回非 2xx 状态码。"
+            exit 1
+          fi
+
+          if [ "$key_count" -lt 1 ]; then
+            cat "$response_file"
+            echo
+            echo "::error::公开 /api/full 接口没有返回可用 key。"
+            exit 1
+          fi
