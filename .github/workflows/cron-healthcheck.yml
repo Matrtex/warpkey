@@ -29,13 +29,16 @@ jobs:
         shell: bash
         run: |
           app_url="${MANUAL_APP_URL:-$DEFAULT_APP_URL}"
-          app_url="${app_url:-https://warp-tool.vercel.app}"
           app_url="${app_url%/}"
 
           if [ -z "$app_url" ]; then
-            echo "::error::缺少 APP_URL，请在 Repository variables/secrets 中配置 APP_URL，或手动运行时输入 app_url。"
-            exit 1
+            echo "::notice::未配置 APP_URL，已跳过定时健康检查。请在 Repository variables/secrets 中配置 APP_URL，或手动运行时输入 app_url。"
+            echo "skip_healthcheck=true" >> "$GITHUB_OUTPUT"
+            echo "has_cron_secret=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          echo "skip_healthcheck=false" >> "$GITHUB_OUTPUT"
 
           if [ -z "$CRON_SECRET" ]; then
             echo "::notice::CRON_SECRET 未配置，将检查公开 /api/full 接口。"
@@ -47,7 +50,7 @@ jobs:
           echo "app_url=$app_url" >> "$GITHUB_OUTPUT"
 
       - name: 调用 cron 健康检查
-        if: steps.config.outputs.has_cron_secret == 'true'
+        if: steps.config.outputs.skip_healthcheck != 'true' && steps.config.outputs.has_cron_secret == 'true'
         shell: bash
         env:
           APP_URL: ${{ steps.config.outputs.app_url }}
@@ -101,7 +104,7 @@ jobs:
           exit 1
 
       - name: 调用公开 API 健康检查
-        if: steps.config.outputs.has_cron_secret == 'false'
+        if: steps.config.outputs.skip_healthcheck != 'true' && steps.config.outputs.has_cron_secret == 'false'
         shell: bash
         env:
           APP_URL: ${{ steps.config.outputs.app_url }}

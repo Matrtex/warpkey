@@ -96,9 +96,9 @@ CRON_SECRET=ci-cron-secret
 - 计划任务：每小时第 17 分钟执行。
 - 手动运行时可通过 `app_url` 临时覆盖部署地址。
 - 优先读取 `vars.APP_URL` 或 `secrets.APP_URL`。
+- 如果没有配置 `APP_URL`，跳过健康检查并返回成功。
 - 如果配置了 `CRON_SECRET`，调用 `/api/cron`。
 - 如果未配置 `CRON_SECRET`，退化检查公开 `/api/full`。
-- 默认部署地址兜底为 `https://warp-tool.vercel.app`。
 - 单次健康检查最多重试 5 次，等待时间按尝试次数递增。
 - `/api/cron` 需要返回 `success: true`，且 `full` 数组至少包含 1 个 key。
 - `/api/full` 需要返回 2xx，且至少包含 1 行符合 `^[A-Za-z0-9-]+$` 的 key。
