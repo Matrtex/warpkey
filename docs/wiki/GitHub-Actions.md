@@ -54,11 +54,14 @@ CRON_SECRET=ci-cron-secret
 执行逻辑：
 
 1. 读取 `APP_URL` 和 `CRON_SECRET`。
-2. 请求 `${APP_URL}/api/cron`。
-3. 校验 JSON 中的 `success` 字段。
-4. 输出 full/lite 数量，便于在日志中快速判断抓取结果。
+2. 如果配置了 `CRON_SECRET`，请求 `${APP_URL}/api/cron`。
+3. 如果没有配置 `CRON_SECRET`，退化检查公开 `${APP_URL}/api/full`。
+4. 单次检查最多重试 5 次，避免上游或部署站点短暂抖动导致误报。
+5. `/api/cron` 会校验 JSON 中的 `success` 字段和 `full` 数量。
+6. `/api/full` 会校验 HTTP 状态码和 key 行格式。
+7. 输出 full/lite 数量或 key 数量，便于在日志中快速判断抓取结果。
 
-如果没有配置 `APP_URL` 或 `CRON_SECRET`，workflow 会失败并提示需要补充配置。
+如果没有配置 `APP_URL`，workflow 会使用默认地址 `https://warp-tool.vercel.app`。如果没有配置 `CRON_SECRET`，workflow 不会失败，而是检查公开 `/api/full` 接口。
 
 ## 同步 Wiki 文档
 

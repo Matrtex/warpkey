@@ -99,6 +99,9 @@ CRON_SECRET=ci-cron-secret
 - 如果配置了 `CRON_SECRET`，调用 `/api/cron`。
 - 如果未配置 `CRON_SECRET`，退化检查公开 `/api/full`。
 - 默认部署地址兜底为 `https://warp-tool.vercel.app`。
+- 单次健康检查最多重试 5 次，等待时间按尝试次数递增。
+- `/api/cron` 需要返回 `success: true`，且 `full` 数组至少包含 1 个 key。
+- `/api/full` 需要返回 2xx，且至少包含 1 行符合 `^[A-Za-z0-9-]+$` 的 key。
 
 推荐 GitHub 配置：
 

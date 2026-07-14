@@ -54,25 +54,23 @@ jobs:
         run: |
           response_file="$(mktemp)"
           export RESPONSE_FILE="$response_file"
+          max_attempts=5
 
-          http_code="$(
-            curl --location --silent --show-error --max-time 45 \
-              --write-out "%{http_code}" \
-              --output "$response_file" \
-              -H "Authorization: Bearer ${CRON_SECRET}" \
-              "${APP_URL}/api/cron"
-          )"
+          for attempt in $(seq 1 "$max_attempts"); do
+            http_code="$(
+              curl --location --silent --show-error --max-time 45 \
+                --write-out "%{http_code}" \
+                --output "$response_file" \
+                -H "Authorization: Bearer ${CRON_SECRET}" \
+                "${APP_URL}/api/cron" || echo "000"
+            )"
 
-          echo "HTTP ${http_code}"
-          cat "$response_file"
-          echo
+            echo "尝试 ${attempt}/${max_attempts}: HTTP ${http_code}"
+            cat "$response_file"
+            echo
 
-          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
-            echo "::error::cron 接口返回非 2xx 状态码。"
-            exit 1
-          fi
-
-          node <<'NODE'
+            if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+              if node <<'NODE'
           const fs = require('fs');
           const body = JSON.parse(fs.readFileSync(process.env.RESPONSE_FILE, 'utf8'));
 
@@ -82,8 +80,25 @@ jobs:
 
           const fullCount = Array.isArray(body.full) ? body.full.length : 0;
           const liteCount = Array.isArray(body.lite) ? body.lite.length : 0;
+          if (fullCount < 1) {
+            throw new Error('cron 响应没有返回可用 key');
+          }
           console.log(`full=${fullCount}, lite=${liteCount}, lastUpdated=${body.lastUpdated}`);
           NODE
+              then
+                exit 0
+              fi
+            fi
+
+            if [ "$attempt" -lt "$max_attempts" ]; then
+              sleep_seconds=$((attempt * 20))
+              echo "健康检查暂未通过，${sleep_seconds} 秒后重试。"
+              sleep "$sleep_seconds"
+            fi
+          done
+
+          echo "::error::cron 接口连续 ${max_attempts} 次检查失败。"
+          exit 1
 
       - name: 调用公开 API 健康检查
         if: steps.config.outputs.has_cron_secret == 'false'
@@ -93,28 +108,33 @@ jobs:
         run: |
           response_file="$(mktemp)"
           export RESPONSE_FILE="$response_file"
+          max_attempts=5
 
-          http_code="$(
-            curl --location --silent --show-error --max-time 45 \
-              --write-out "%{http_code}" \
-              --output "$response_file" \
-              "${APP_URL}/api/full"
-          )"
+          for attempt in $(seq 1 "$max_attempts"); do
+            http_code="$(
+              curl --location --silent --show-error --max-time 45 \
+                --write-out "%{http_code}" \
+                --output "$response_file" \
+                "${APP_URL}/api/full" || echo "000"
+            )"
 
-          echo "HTTP ${http_code}"
-          key_count="$(grep -cve '^[[:space:]]*$' "$response_file" || true)"
-          echo "key_count=${key_count}"
+            echo "尝试 ${attempt}/${max_attempts}: HTTP ${http_code}"
+            key_count="$(grep -Ec '^[A-Za-z0-9-]+$' "$response_file" || true)"
+            echo "key_count=${key_count}"
 
-          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+            if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ] && [ "$key_count" -ge 1 ]; then
+              exit 0
+            fi
+
             cat "$response_file"
             echo
-            echo "::error::公开 /api/full 接口返回非 2xx 状态码。"
-            exit 1
-          fi
 
-          if [ "$key_count" -lt 1 ]; then
-            cat "$response_file"
-            echo
-            echo "::error::公开 /api/full 接口没有返回可用 key。"
-            exit 1
-          fi
+            if [ "$attempt" -lt "$max_attempts" ]; then
+              sleep_seconds=$((attempt * 20))
+              echo "公开 API 暂未返回可用 key，${sleep_seconds} 秒后重试。"
+              sleep "$sleep_seconds"
+            fi
+          done
+
+          echo "::error::公开 /api/full 接口连续 ${max_attempts} 次没有返回可用 key。"
+          exit 1
