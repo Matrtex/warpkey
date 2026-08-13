@@ -12,7 +12,7 @@ Warp Key 是一个用于收集并展示 Cloudflare Warp+ key 的项目。当前�
 - React 19：页面和组件渲染。
 - TypeScript：项目开启 `strict`，路径别名为 `@/*`。
 - next-intl：通过 `app/[locale]`、`messages/*.json` 和 `i18n/*` 实现中英文路由与文案。
-- Tailwind CSS 4、shadcn、本地 UI 组件：用于页面布局和基础组件。
+- Tailwind CSS 4、基于 shadcn 生成的本地 UI 组件：用于页面布局和基础组件；运行时不依赖 shadcn CLI。
 - lucide-react：用于图标。
 - undici：在配置代理环境变量时使用 `ProxyAgent` 抓取上游。
 - pnpm：依赖管理和脚本入口。
